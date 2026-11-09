@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from discord import app_commands
 from teste import valid_input
 from ai import check_claim
-
+import asyncio
 load_dotenv()
 
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -29,7 +29,7 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
             content=f"Aguarde, fazendo a checagem de fatos para: {argumento}"
         )
 
-        result = check_claim(argumento)
+        result = await asyncio.to_thread(check_claim, argumento)
         await interaction.edit_original_response(content=result)
         
     else:
