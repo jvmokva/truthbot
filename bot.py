@@ -26,7 +26,7 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
         await interaction.response.defer(thinking=True)
         
         await interaction.edit_original_response(
-            content=f"Aguarde, fazendo a checagem de fatos... para: {argumento}"
+            content=f"Aguarde, fazendo a checagem de fatos para: {argumento}"
         )
 
         result = check_claim(argumento)
