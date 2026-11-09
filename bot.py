@@ -29,7 +29,17 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
             content=f"Aguarde, fazendo a checagem de fatos para: {argumento}"
         )
 
-        result = await asyncio.to_thread(check_claim, argumento)
+        try:
+            result = await asyncio.to_thread(check_claim, argumento)
+
+        except Exception as error:
+         print(f"Erro durante a checagem: {error}")
+
+        result = (
+            "Não foi possível concluir a checagem de fatos devido "
+            "a um problema técnico. Por favor, tente novamente mais tarde."
+        )
+
         await interaction.edit_original_response(content=result)
         
     else:
