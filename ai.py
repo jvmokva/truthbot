@@ -77,8 +77,9 @@ def escape_tags(text):
 def check_claim(argument):
     sources = search_sources(argument)
     unique_urls = set()
+    unique_domains = set()
     unique_sources = []
-    
+
     for source in sources:
         if (
             not source.get("url", "").strip()
@@ -93,10 +94,13 @@ def check_claim(argument):
 
         if source["url"] not in unique_urls:
             unique_urls.add(source["url"])
+            unique_domains.add(parsed_url.hostname.removeprefix("www."))
             unique_sources.append(source)
 
-                
-    if len(unique_urls) < 3:
+    # antes eram contadas urls diferentes, então três páginas do mesmo site
+    # já bastavam pra ia dar um veredito. agora precisam ser três sites
+    # diferentes (www.site.com e site.com contam como o mesmo).
+    if len(unique_domains) < 3:
         return (
             "Não existem fontes confiáveis que neguem ou comprovem tal "
             "afirmação/pergunta/questionamento. "
