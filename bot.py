@@ -51,12 +51,18 @@ def split_message(text, limit=DISCORD_MAX_CHARS):
     return parts
 
 
+# cada checagem gasta cota paga do gemini e da tavily, e antes qualquer um podia
+# disparar o comando sem parar. agora cada usuário só pode fazer uma checagem
+# a cada 30 segundos.
+COOLDOWN_SECONDS = 30.0
+
+
 @tree.command(
     name="factcheck",
     description="Verifica a veracidade de uma afirmação.",
     guild=guild
 )
-
+@app_commands.checks.cooldown(1, COOLDOWN_SECONDS)
 async def factcheck(interaction: discord.Interaction, argumento: str):
     if valid_input(argumento):
         await interaction.response.defer(thinking=True)
@@ -99,7 +105,19 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
         await interaction.response.send_message(
             "Você não forneceu argumentos suficientes para uma checagem, por favor tente novamente."
         )
-    
+
+
+# sem isso, quem caía no cooldown via só "o aplicativo não respondeu" no discord.
+# agora a pessoa sabe quanto tempo falta, e só ela vê o aviso.
+@factcheck.error
+async def factcheck_error(interaction: discord.Interaction, error):
+    if isinstance(error, app_commands.CommandOnCooldown):
+        await interaction.response.send_message(
+            f"Calma! Aguarde {error.retry_after:.0f} segundos antes de fazer outra checagem.",
+            ephemeral=True
+        )
+
+
 @client.event
 async def on_ready():
     synced = await tree.sync(guild=guild)
