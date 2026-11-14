@@ -33,12 +33,15 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
             result = await asyncio.to_thread(check_claim, argumento)
 
         except Exception as error:
-         print(f"Erro durante a checagem: {error}")
+            print(f"Erro durante a checagem: {error}")
 
-        result = (
-            "Não foi possível concluir a checagem de fatos devido "
-            "a um problema técnico. Por favor, tente novamente mais tarde."
-        )
+            # esta mensagem precisa ficar dentro do except e não alinhada no try,
+            # sempre que rodava, apagava a resposta da ia, e o usuário recebia
+            # um "problema técnico" mesmo quando dava certo.
+            result = (
+                "Não foi possível concluir a checagem de fatos devido "
+                "a um problema técnico. Por favor, tente novamente mais tarde."
+            )
 
         await interaction.edit_original_response(content=result)
         
