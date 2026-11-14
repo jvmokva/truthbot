@@ -17,7 +17,7 @@ guild = discord.Object(id=GUILD_ID)
 
 # o discord recusa mensagens com mais de 2000 caracteres, e quando isso
 # acontecia o bot travava no "pensando..." sem responder nada. agora o texto
-# é cortado antes de ser enviado.
+# é cortado (na mensagem de espera) ou dividido (na resposta) antes de ser enviado.
 DISCORD_MAX_CHARS = 2000
 
 
@@ -25,6 +25,30 @@ def truncate(text, limit=DISCORD_MAX_CHARS):
     if len(text) <= limit:
         return text
     return text[: limit - 1] + "…"
+
+
+# cortar a resposta da ia fazia o usuário perder o final dela, justamente onde
+# ficam as fontes. então ela é dividida em partes de até 2000 caracteres,
+# quebrando de preferência numa linha, depois num espaço, pra não partir
+# uma url ou uma palavra no meio. se a última linha estiver muito no começo,
+# usa o espaço, senão a primeira mensagem sairia quase vazia.
+def split_message(text, limit=DISCORD_MAX_CHARS):
+    parts = []
+
+    while len(text) > limit:
+        cut = text.rfind("\n", 0, limit + 1)
+        if cut < limit // 2:
+            cut = text.rfind(" ", 0, limit + 1)
+        if cut <= 0:
+            cut = limit
+
+        parts.append(text[:cut])
+        text = text[cut:].lstrip("\n ")
+
+    if text:
+        parts.append(text)
+
+    return parts
 
 
 @tree.command(
@@ -55,7 +79,12 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
                 "a um problema técnico. Por favor, tente novamente mais tarde."
             )
 
-        await interaction.edit_original_response(content=truncate(result))
+        # a primeira parte substitui o "aguarde...", e o resto vai em
+        # mensagens novas logo abaixo.
+        parts = split_message(result)
+        await interaction.edit_original_response(content=parts[0])
+        for part in parts[1:]:
+            await interaction.followup.send(part)
         
     # antes, quem mandava um texto grande demais recebia "você não forneceu
     # argumentos suficientes", o que é justamente o contrário do problema.
