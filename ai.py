@@ -106,6 +106,15 @@ Fontes:
         )
     )
 
+    # quando o gemini bloqueia a resposta (por filtro de segurança, por exemplo),
+    # o response.text vem vazio, e o bot mandava uma mensagem em branco ou dava
+    # erro. agora o usuário recebe um aviso no lugar.
+    if not response.text:
+        return (
+            "Não foi possível gerar uma resposta para essa checagem. "
+            "Tente reformular a afirmação."
+        )
+
     return response.text
 
 
