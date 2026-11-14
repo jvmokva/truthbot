@@ -15,6 +15,18 @@ tree = app_commands.CommandTree(client)
 GUILD_ID = 392439823316811776
 guild = discord.Object(id=GUILD_ID)
 
+# o discord recusa mensagens com mais de 2000 caracteres, e quando isso
+# acontecia o bot travava no "pensando..." sem responder nada. agora o texto
+# é cortado antes de ser enviado.
+DISCORD_MAX_CHARS = 2000
+
+
+def truncate(text, limit=DISCORD_MAX_CHARS):
+    if len(text) <= limit:
+        return text
+    return text[: limit - 1] + "…"
+
+
 @tree.command(
     name="factcheck",
     description="Verifica a veracidade de uma afirmação.",
@@ -26,7 +38,7 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
         await interaction.response.defer(thinking=True)
         
         await interaction.edit_original_response(
-            content=f"Aguarde, fazendo a checagem de fatos para: {argumento}"
+            content=truncate(f"Aguarde, fazendo a checagem de fatos para: {argumento}")
         )
 
         try:
@@ -43,7 +55,7 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
                 "a um problema técnico. Por favor, tente novamente mais tarde."
             )
 
-        await interaction.edit_original_response(content=result)
+        await interaction.edit_original_response(content=truncate(result))
         
     else:
         await interaction.response.send_message(
