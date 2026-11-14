@@ -2,7 +2,7 @@ import discord
 import os
 from dotenv import load_dotenv
 from discord import app_commands
-from teste import valid_input
+from teste import valid_input, MAX_ARGUMENT_LENGTH
 from ai import check_claim
 import asyncio
 load_dotenv()
@@ -57,9 +57,18 @@ async def factcheck(interaction: discord.Interaction, argumento: str):
 
         await interaction.edit_original_response(content=truncate(result))
         
+    # antes, quem mandava um texto grande demais recebia "você não forneceu
+    # argumentos suficientes", o que é justamente o contrário do problema.
+    # agora cada caso tem a sua própria mensagem.
+    elif len(argumento.strip()) > MAX_ARGUMENT_LENGTH:
+        await interaction.response.send_message(
+            f"Sua afirmação é muito longa. Use no máximo {MAX_ARGUMENT_LENGTH} "
+            "caracteres e tente novamente."
+        )
+
     else:
         await interaction.response.send_message(
-            f"Você não forneceu argumentos suficientes para uma checagem, por favor tente novamente."
+            "Você não forneceu argumentos suficientes para uma checagem, por favor tente novamente."
         )
     
 @client.event

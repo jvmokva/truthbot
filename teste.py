@@ -1,11 +1,11 @@
-
+MAX_ARGUMENT_LENGTH = 2000
 
 
 def valid_input(user_argument):
     user_argument = user_argument.strip()
     if len(user_argument) < 8:
         return False
-    if len(user_argument) > 2000:
+    if len(user_argument) > MAX_ARGUMENT_LENGTH:
         return False
     if not any(char.isalpha() for char in user_argument):
         return False
